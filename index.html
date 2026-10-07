@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <h1>urna da turma</h1>
+        <nav>
+            <button class="aba ativa" data-tela="votacao">Votar</button>
+            <button class="aba" data-tela="candidatos">candidatos</button>
+            <button class="aba"data-tela="resultado">resultado</button>
+        </nav>
+    </header>    
+
+    <main>
+        <section id="votacao" class="tela ativa"></section>
+        <div class="urna">
+            <p class="rotulo">digite o número do seu candidato</p>
+            <input type="text" id="numerovoto" maxlenght="2" inputmode="numeric" autocomplete="off">
+            <div id="previa" class="previa"></div>
+        </div>
+
+        <div class="botoes-urna">
+            <button id="btnBranco" class="branco">Branco</button>
+            <button id="btnCorrige" class="corrige">Corrige</button>
+            <button id="btnConfirma" class="confirma">Confirma</button>
+        </div>
+    </div>
+    <div id="fim" class="fim">Fim</div>
+    </section>
+
+    <section id="candidatos" class="tela">
+        <h2>Cadastrar candidatos</h2>
+        <form id="formCandidato">
+            <input type="text" id="nomeCandidato" placeholder="Nome do aluno" required>
+            <input type="text" id="numeroCandidato" placeholder="Número (ex: 10)" maxlength="2" inputmode="numeric">
+            <button type="submit">Adicionar</button>
+        </form>
+
+    <h2>Candidatos cadastrados</h2>
+    <ul id="listaCandidatos"></ul>
+    </section>
+    
+    <section id="resultado" class="tela">
+        <h2>Apuração</h2>
+        <p id="totalVotos"></p>
+        <div id="listaResultado"></div>
+        <button id="btnZerar" class="perigo">Zerar Votos</button>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
