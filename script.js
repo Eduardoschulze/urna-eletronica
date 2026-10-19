@@ -1,216 +1,141 @@
-// -- Salvar e resgatar dados do LOCALSTORAGE
-
-function carregarCandidatos() {
-    const dados = localStorage.getItem("candidatos");
-    return dados ? JSON.parse(dados) : []
+function carregar(chave,padrao) {
+try{return JSON.parse(localStorage.getItem(chave))??padrao}catch{return padrao}
 }
 
-function salvarCandidatos(candidatos) {
-    localStorage.setItem("candidatos", JSON.stringify(candidatos));
-}
+const carregarCandidatos=()=>carregar("candidatos",[]),carregarVotos=()=>carregar("votos",{}
+);
 
-function salvarVotos(votos) {
-    localStorage.setItem("votos", JSON.stringify(votos));
-}
 
-function carregarVotos() {
-    const dados = localStorage.getItem("votos");
+const salvarCandidatos=d=>localStorage.setItem("candidatos",JSON.stringify(d)),salvarVotos=d=>localStorage.setItem("votos",JSON.stringify(d));
 
-    if (!dados || dados === "undefined") {
-        return {};
-    }
+const abas=document.querySelectorAll(".aba"),telas=document.querySelectorAll(".tela");
 
-    try {
-        return JSON.parse(dados);
-    } catch (erro) {
-        console.error("Erro ao carregar votos:", erro);
-        return {};
-    }
-}
-// ---- Navegação entre páginas
+abas.forEach(a=>a.addEventListener("click",()=> {
+abas.forEach(x=>x.classList.remove("ativa"));
+telas.forEach(x=>x.classList.remove("ativa"));
+a.classList.add("ativa");
+document.getElementById(a.dataset.tela).classList.add("ativa");
+if (a.dataset.tela==="candidatos")mostrarCandidatos();
+if (a.dataset.tela==="resultado")mostrarResultado()}));
 
-const abas = document.querySelectorAll(".aba")
-const telas = document.querySelectorAll(".tela")
+const form=document.getElementById("formCandidato"),listaCandidatos=document.getElementById("listaCandidatos");
 
-abas.forEach(function (aba) {
-    aba.addEventListener("click", function () {
-        abas.forEach(a => a.classList.remove("ativa"));
-        telas.forEach(t => t.classList.remove("ativa"));
+form.addEventListener("submit",e=> {
+e.preventDefault();
+const nome=document.getElementById("nomeCandidato").value.trim(),numero=document.getElementById("numeroCandidato").value.trim();
+if (!/^\d{2}$/.test(numero)) {
+alert("O número deve ter exatamente 2 dígitos.");
+return}
+const cs=carregarCandidatos();
+if (cs.some(c=>c.numero===numero)) {
+alert("Esse número já está cadastrado.");
+return}cs.push({nome,numero}
+);
 
-        aba.classList.add("ativa")
-        document.getElementById(aba.dataset.tela).classList.add("ativa")
+salvarCandidatos(cs);
+form.reset();
+mostrarCandidatos()}
+);
 
-        if (aba.dataset.tela == "candidatos") mostrarCandidatos();
-        if (aba.dataset.tela == "resultado") mostrarResultado();
-    });
-});
-
-// --- Cadastro de candidatos 
-const formaCandidato = document.getElementById("formCandidato");
-const listaCandidatos = document.getElementById("listaCandidatos");
-
-formCandidato.addEventListener("submit", function (evento) {
-    evento.preventDefault();
-
-    const nome = document.getElementById("nomeCandidato").value.trim();
-    const numero = document.getElementById("numeroCandidato").value.trim();
-
-    const candidatos = carregarCandidatos();
-
-    const existente = candidatos.find(c => c.numero === numero);
-    if (existente) {
-        alert("Já existe um candidato com o número" + numero);
-        return;
-    }
-
-    candidatos.push({nome: nome, numero: numero});
-    salvarCandidatos(candidatos);
-
-    formCandidato.reset();
-    mostrarCandidatos();
-});
 
 function mostrarCandidatos() {
-    const candidatos = carregarCandidatos();
-    listaCandidatos.innerHTML = "";
+listaCandidatos.replaceChildren();
+const cs=carregarCandidatos();
+if (!cs.length) {
+const li=document.createElement("li");
+li.textContent="Nenhum candidato cadastrado ainda.";
+listaCandidatos.appendChild(li);
+return}cs.forEach(c=> {
+const li=document.createElement("li");
+li.append(document.createTextNode(c.numero+" - "+c.nome+" "));
+const b=document.createElement("button");
+b.textContent="Remover";
+b.addEventListener("click",()=> {
+salvarCandidatos(carregarCandidatos().filter(x=>x.numero!==c.numero));
+mostrarCandidatos()}
+);
 
-    if (candidatos.length === 0) {
-        listaCandidatos.innerHTML = "<li>Nenhum candidato cadastrado ainda.</li>";
-        return;
-    }
+li.appendChild(b);
+listaCandidatos.appendChild(li)})}
+const input=document.getElementById("numerovoto"),previa=document.getElementById("previa"),fim=document.getElementById("fim"),botoes=document.querySelector(".botoes-urna");
+let bloqueia=false;
 
-    candidatos.forEach(function (candidato) {
-        const li = document.createElement("li");
-        li.innerHTML = `
-        <span><strong>${candidato.numero}</strong> - ${candidato.nome}</span>
-        <button onClick="removerCandidato('${candidato.numero}')">Remover</button>`;
-        listaCandidatos.appendChild(li);
-    });
-}
+input.addEventListener("input",()=> {
+input.value=input.value.replace(/\D/g,"").slice(0,2);
+atualizarPrevia()}
+);
 
-function removerCandidato(numero) {
-    const candidatos = carregarCandidatos().filter(c => c.numero !== numero);
-    salvarCandidatos(candidatos);
-    mostrarCandidatos();
-}
-
-// ---- Votação
-
-const inputVoto = document.getElementById("numerovoto");
-const previa = document.getElementById("previa");
-const telaFim = document.getElementById("fim");
-const urna = document.querySelector(".urna");
-
-inputVoto.addEventListener("input", function (){ 
-    inputVoto.value = inputVoto.value.replace(/\D/g, "");
-    atualizarPrevia();
-});
 
 function atualizarPrevia() {
-    const numero = inputVoto.value;
+previa.textContent="";
+if (!input.value)return;
+const c=carregarCandidatos().find(x=>x.numero===input.value);
+previa.textContent=c?"Candidato: "+c.nome:"Número não cadastrado: voto nulo"}
+function registrar(chave) {
+if (bloqueia)return;
+const votos=carregarVotos();
+votos[chave]=(votos[chave]||0)+1;
+salvarVotos(votos);
+bloqueia=true;
+input.hidden=previa.hidden=botoes.hidden=true;
+fim.style.display="block";
+setTimeout(()=> {
+input.value="";
+input.hidden=previa.hidden=botoes.hidden=false;
+fim.style.display="none";
+bloqueia=false;
+atualizarPrevia();
+input.focus()},1500)}
+document.getElementById("btnConfirma").addEventListener("click",()=> {
+const n=input.value;
+if (n.length!==2) {
+alert("Digite os 2 dígitos do candidato.");
+return}registrar(carregarCandidatos().some(c=>c.numero===n)?n:"nulo")}
+);
 
-    if(numero.length > 2) {
-        previa.innerHTML = "";
-        return;
-    }
 
-    const candidato = carregarCandidatos().find(c => c.numero === numero);
+document.getElementById("btnBranco").addEventListener("click",()=>registrar("branco"));
+document.getElementById("btnCorrige").addEventListener("click",()=> {
+input.value="";
+atualizarPrevia();
+input.focus()}
+);
 
-    if(candidato) {
-        previa.innerHTML = `Candidato: <strong>${candidato.nome}</strong>`;
-       } else {
-        previa.innerHTML = `<spán class="nulo">Número Errado - Voto Nulo</span>`;
-       } 
-    }
 
-    function registrarVoto(chave) {
-        const votos = carregarVotos();
-        votos[chave] = (votos[chave] || 0) + 1;
-        salvarVotos(votos);
-        mostrarFim();
-    }
-
-    document.getElementById("btnConfirma").addEventListener("click", function () {
-        const numero = inputVoto.value;
-
-        if(numero.length < 2) {
-            alert("Digite o número do candidato (2 dígitos).");
-            return;
-        }
-        
-        const candidato = carregarCandidatos().find(c => c.numero === numero);
-        registrarVoto(candidato ? numero : "nulo");
-    });
-
-    document.getElementById("btnBranco").addEventListener("click", function() {
-        registrarVoto("branco");
-    });
-
-    document.getElementById("btnCorrige").addEventListener("click", limpaUrna);
-
-    function limpaUrna() {
-        inputVoto.value = "";
-        previa.innerHTML = "";
-        inputVoto.focus();
-    }
-
-    function mostrarFim() {
-        urna.style.previa = "none";
-        telaFim.style.display = "block";
-    
-
-    setTimeout(function () {
-        telaFim.style.display = "none";
-        urna.style.display = "block";
-        limpaUrna();
-    }, 2000);
-    }
-
-// ----- Resultado
 function mostrarResultado() {
-    const candidatos = carregarCandidatos();
-    const votos = carregarVotos();
-    const lista = document.getElementById("listaResultado");
+const votos=carregarVotos(),res=carregarCandidatos().map(c=>({nome:c.numero+" - "+c.nome,qtd:votos[c.numero]||0}));
+res.push({nome:"Brancos",qtd:votos.branco||0},{nome:"Nulos",qtd:votos.nulo||0}
+);
 
-    const resultado = candidatos.map(c => ({
-        nome: `${c.numero} - ${c.nome}`,
-        qtd: votos[c.numero] || 0
-    }));
-    resultado.push({nome: "Brancos", qtd: votos.branco || 0});
-    resultado.push({nome: "Nulos", qtd: votos.nulo || 0});
-
-    resultado.sort((a, b) => b.qtd - a.qtd);
-
-    const total = resultado.reduce((soma, item) => soma + item.qtd, 0);
-    document.getElementById("totalVotos").textContent = `Total de votos: ${total}`;
-
-    lista.innerHTML = "";
-    resultado.forEach(function (item) {
-        const porcentagem = total > 0 ? ((item.qtd / total) * 100).toFixed(1) : 0;
-        lista.innerHTML += `
-        <div class="item-resultado">
-         <div class="linha">
-            <span>${item.nome}</nome>
-            <span>${item.qtd} voto(s) - ${porcentagem}%</span>
-        </div>
-        <div class="barra"><div style="width: ${porcentagem}%></div><div>
-        </div>`;
-    });
+res.sort((a,b)=>b.qtd-a.qtd);
+const total=res.reduce((s,x)=>s+x.qtd,0);
+document.getElementById("totalVotos").textContent="Total de votos: "+total;
+const lista=document.getElementById("listaResultado");
+lista.replaceChildren();
+res.forEach(x=> {
+const p=total?x.qtd/total*100:0,bloco=document.createElement("div");
+bloco.className="item-resultado";
+const linha=document.createElement("div");
+linha.className="linha";
+const nome=document.createElement("span"),qtd=document.createElement("span");
+nome.textContent=x.nome;
+qtd.textContent=x.qtd+" voto(s) - "+p.toFixed(1)+"%";
+linha.append(nome,qtd);
+const barra=document.createElement("div"),fill=document.createElement("div");
+barra.className="barra";
+fill.style.width=p+"%";
+barra.appendChild(fill);
+bloco.append(linha,barra);
+lista.appendChild(bloco)})}
+document.getElementById("btnZerar").addEventListener("click",()=> {
+if (confirm("Tem certeza que deseja zerar todos os votos?")) {
+localStorage.removeItem("votos");
+mostrarResultado()}
 }
 
-document.getElementById("btnZerar").addEventListener("click", function () {
-    if (confirm("Tem certeza que deseha pagar TODOS os votos?")) {
-        localStorage.removeItem("votos");
-        mostrarResultado();
-    }
-});
-
-inputVoto.focus();
+);
 
 
-
-
-
-
-
+mostrarCandidatos();
+input.focus();
 
