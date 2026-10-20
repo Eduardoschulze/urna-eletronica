@@ -2,84 +2,90 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
 <title>Urna da turma</title>
-<style>
-body{
-            font-family:Arial,sans-serif;max-width:700px;margin:30px auto;padding:0 16px;color:#222
-        }nav,.botoes-urna{
-            display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px
-        }button{
-            padding:9px 14px;cursor:pointer
-        }.aba.ativa{
-            background:#145da0;color:white
-        }.tela{
-            display:none;border:1px solid #ccc;border-radius:8px;padding:18px
-        }.tela.ativa{
-            display:block
-        }input{
-            padding:9px;margin:5px 0
-        }#numerovoto{
-            width:70px;font-size:24px;text-align:center
-        }.fim{
-            display:none;font-size:28px;font-weight:bold;margin:20px 0
-        }li{
-            margin:8px 0
-        }.item-resultado{
-            padding:10px 0;border-bottom:1px solid #ddd
-        }.linha{
-            display:flex;justify-content:space-between;gap:10px
-        }.barra{
-            height:10px;background:#eee;margin-top:6px
-        }.barra div{
-            height:100%;background:#145da0
-        }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-<h1>Urna da turma</h1>
-<nav>
-<button class="aba ativa" data-tela="votacao">Votar</button>
-<button class="aba" data-tela="candidatos">Candidatos</button>
-<button class="aba" data-tela="resultado">Apuração</button>
-</nav>
-</header>
-<main>
-<section id="votacao" class="tela ativa">
-<h2>Votação</h2>
-<p>Digite o número do candidato:</p>
-<input type="text" id="numerovoto" maxlength="2" inputmode="numeric" autocomplete="off">
-<div id="previa" aria-live="polite">
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#votacao" aria-label="Urna da turma, início">
+      <span class="brand-mark" aria-hidden="true">U</span>
+      <span><strong>URNA</strong><small>ELEIÇÃO DA TURMA</small></span>
+    </a>
+    <nav class="main-nav" aria-label="Navegação principal">
+      <button class="nav-tab active" data-screen="votacao"><span class="nav-icon">◉</span> Votar</button>
+      <button class="nav-tab" data-screen="candidatos"><span class="nav-icon">♙</span> Candidatos</button>
+      <button class="nav-tab" data-screen="resultado"><span class="nav-icon">▥</span> Apuração</button>
+    </nav>
+    <div class="account-area" id="accountArea"></div>
+  </header>
+
+  <main>
+    <section class="screen active" id="votacao">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live-dot"></span> ELEIÇÃO EM ANDAMENTO</div>
+          <h1>Seu voto.<br><span>Sua escolha.</span></h1>
+          <p>Escolha seu candidato e confirme seu voto na urna da turma.</p>
+          <div class="vote-card">
+            <div class="vote-card-head"><div><span class="section-kicker">CÉDULA DIGITAL</span><h2>Digite o número</h2></div><span class="lock-mark">✦</span></div>
+            <div class="ballot-row">
+              <input type="text" id="numerovoto" maxlength="2" inputmode="numeric" autocomplete="off" aria-label="Número do candidato" placeholder="••">
+              <div class="candidate-preview" id="previa" aria-live="polite">Aguardando seu voto</div>
+            </div>
+            <div class="vote-actions">
+              <button class="button button-ghost" id="btnBranco">Voto em branco</button>
+              <div class="button-pair"><button class="button button-muted" id="btnCorrige">Corrige</button><button class="button button-primary" id="btnConfirma">Confirma <span>→</span></button></div>
+            </div>
+            <div class="vote-finish" id="fim" aria-live="polite"><span>✓</span><div><strong>Voto registrado!</strong><small>Obrigado por participar da eleição.</small></div></div>
+          </div>
+          <div class="privacy-note"><span>◈</span> A votação é aberta. Não é necessário fazer login.</div>
+        </div>
+        <aside class="election-aside">
+          <div class="aside-orbit orbit-one"></div><div class="aside-orbit orbit-two"></div>
+          <div class="ballot-illustration"><div class="ballot-top"><span></span><span></span><span></span></div><div class="ballot-slot"></div><div class="ballot-check">✓</div><div class="ballot-base"></div></div>
+          <div class="aside-caption"><span class="section-kicker">DEMOCRACIA COMEÇA AQUI</span><h3>Uma escolha<br>faz diferença.</h3><p>Participe e ajude a escolher quem representa a sua turma.</p></div>
+          <div class="aside-index">01 <span>/ 03</span></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="candidatos">
+      <div class="page-heading"><div><div class="eyebrow">ÁREA ADMINISTRATIVA</div><h1>Gestão de <span>candidatos</span></h1><p>Cadastre e organize quem participa da eleição.</p></div><span class="admin-badge">♙ ADMINISTRADOR</span></div>
+      <div class="management-grid">
+        <article class="panel add-panel"><span class="section-kicker">NOVO REGISTRO</span><h2>Adicionar candidato</h2><p>Preencha os dados para incluir um candidato na urna.</p>
+          <form id="formCandidato" class="stack-form"><label>Nome completo<input type="text" id="nomeCandidato" placeholder="Ex.: Ana Souza" required maxlength="80"></label><label>Número na urna<input type="text" id="numeroCandidato" placeholder="Ex.: 10" maxlength="2" inputmode="numeric" required></label><button type="submit" class="button button-primary full-button">Adicionar candidato <span>＋</span></button></form>
+          <div class="form-hint">O número precisa ter dois dígitos e ser único.</div>
+        </article>
+        <article class="panel roster-panel"><div class="panel-heading"><div><span class="section-kicker">LISTA OFICIAL</span><h2>Candidatos cadastrados</h2></div><span id="candidateCount" class="count-pill">0</span></div><ul id="listaCandidatos" class="candidate-list"></ul></article>
+      </div>
+    </section>
+
+    <section class="screen" id="resultado">
+      <div class="page-heading"><div><div class="eyebrow">RESULTADO DA ELEIÇÃO</div><h1>A voz da turma, <span>em números.</span></h1><p>Acompanhe os votos computados nesta urna.</p></div><div class="results-total"><span>VOTOS COMPUTADOS</span><strong id="totalVotos">0</strong></div></div>
+      <article class="panel results-panel"><div class="panel-heading"><div><span class="section-kicker">APURAÇÃO ATUAL</span><h2>Resultado por candidato</h2></div><span class="results-symbol">▥</span></div><div id="listaResultado" class="results-list"></div></article>
+      <div class="admin-tools" id="adminTools"><span>Ferramentas do administrador</span><button id="btnZerar" class="button button-danger">Zerar votos</button></div>
+      <p class="storage-note">Os dados desta demonstração ficam salvos no armazenamento local deste navegador.</p>
+    </section>
+
+    <section class="screen" id="auth">
+      <div class="auth-wrap"><div class="auth-aside"><a class="brand" href="#votacao"><span class="brand-mark">U</span><span><strong>URNA</strong><small>ELEIÇÃO DA TURMA</small></span></a><div><div class="eyebrow">ACESSO À APURAÇÃO</div><h1> acompanhe<br><span>cada voto.</span></h1><p>Entre ou crie sua conta para consultar o resultado da eleição.</p></div><div class="auth-decoration">U<span>•</span></div></div>
+        <div class="auth-content"><button class="back-link" id="authBack">← Voltar para votação</button>
+          <div id="authRegister" class="auth-form-view"><span class="section-kicker">SUA CONTA</span><h2>Criar cadastro</h2><p>Qualquer pessoa pode criar uma conta para ver a apuração.</p><form id="formRegister" class="stack-form"><label>E-mail<input type="email" id="registerEmail" placeholder="voce@exemplo.com" autocomplete="email" required></label><label>Senha<input type="password" id="registerPassword" placeholder="Mínimo de 8 caracteres" autocomplete="new-password" minlength="8" required></label><label>Confirmar senha<input type="password" id="registerConfirm" placeholder="Digite a senha novamente" autocomplete="new-password" minlength="8" required></label><button type="submit" class="button button-primary full-button">Criar conta <span>→</span></button></form><div class="auth-switch">Já tem cadastro? <button type="button" data-auth-view="login">Fazer login</button></div><div class="inline-message" id="registerMessage" aria-live="polite"></div></div>
+          <div id="authLogin" class="auth-form-view hidden"><span class="section-kicker">BEM-VINDO DE VOLTA</span><h2>Fazer login</h2><p>Entre com seu e-mail e senha cadastrados.</p><form id="formLogin" class="stack-form"><label>E-mail<input type="email" id="loginEmail" placeholder="voce@exemplo.com" autocomplete="username" required></label><label>Senha<input type="password" id="loginPassword" placeholder="Sua senha" autocomplete="current-password" required></label><button type="submit" class="button button-primary full-button">Entrar <span>→</span></button></form><div class="auth-switch">Ainda não tem conta? <button type="button" data-auth-view="register">Criar cadastro</button></div><div class="inline-message" id="loginMessage" aria-live="polite"></div></div>
+          <div id="authAdminSetup" class="auth-form-view hidden"><span class="section-kicker">CONFIGURAÇÃO INICIAL</span><h2>Criar conta admin</h2><p>Defina seu e-mail e uma senha. Essa conta controla os candidatos e a urna.</p><form id="formAdminSetup" class="stack-form"><label>Seu e-mail<input type="email" id="adminEmail" placeholder="admin@exemplo.com" autocomplete="email" required></label><label>Senha de administrador<input type="password" id="adminPassword" placeholder="Mínimo de 8 caracteres" autocomplete="new-password" minlength="8" required></label><label>Confirmar senha<input type="password" id="adminConfirm" placeholder="Digite a senha novamente" autocomplete="new-password" minlength="8" required></label><button type="submit" class="button button-primary full-button">Criar administrador <span>→</span></button></form><div class="inline-message" id="adminMessage" aria-live="polite"></div></div>
+          <div id="authAdminLogin" class="auth-form-view hidden"><span class="section-kicker">ACESSO RESTRITO</span><h2>Login do admin</h2><p>Entre com as credenciais do administrador para gerenciar candidatos.</p><form id="formAdminLogin" class="stack-form"><label>E-mail do administrador<input type="email" id="adminLoginEmail" placeholder="admin@exemplo.com" autocomplete="username" required></label><label>Senha<input type="password" id="adminLoginPassword" placeholder="Sua senha de administrador" autocomplete="current-password" required></label><button type="submit" class="button button-primary full-button">Entrar como administrador <span>→</span></button></form><div class="inline-message" id="adminLoginMessage" aria-live="polite"></div></div>
+        </div></div>
+    </section>
+  </main>
+  <footer class="site-footer"><span>URNA DA TURMA</span><span>PROJETO DIDÁTICO · <span id="footerYear"></span></span></footer>
 </div>
-<div class="botoes-urna">
-<button id="btnBranco">Branco</button>
-<button id="btnCorrige">Corrige</button>
-<button id="btnConfirma">Confirma</button>
-</div>
-<div id="fim" class="fim">Fim. Voto registrado!</div>
-</section>
-<section id="candidatos" class="tela">
-<h2>Cadastrar candidato</h2>
-<form id="formCandidato">
-<input type="text" id="nomeCandidato" placeholder="Nome do aluno" required>
-<input type="text" id="numeroCandidato" placeholder="Número (ex.: 10)" maxlength="2" inputmode="numeric" required>
-<button type="submit">Adicionar</button>
-</form>
-<h2>Candidatos cadastrados</h2>
-<ul id="listaCandidatos">
-</ul>
-</section>
-<section id="resultado" class="tela">
-<h2>Apuração</h2>
-<p id="totalVotos">
-</p>
-<div id="listaResultado">
-</div>
-<button id="btnZerar">Zerar votos</button>
-</section>
-</main>
-<script src="script.js">
-</script>
+<script src="script.js"></script>
 </body>
 </html>
